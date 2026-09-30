@@ -9,7 +9,7 @@ from OpenGL.GL import *
 from OpenGL.GL.shaders import compileProgram, compileShader
 
 
-WINDOW_SIZE = (1280, 720)
+WINDOW_SIZE = (640, 480)
 CELL_SIZE = (32, 16)
 GRID_SIZE = (80, 60)
 PAN_SPEED = 600.0
