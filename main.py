@@ -48,6 +48,7 @@ void main() {
 
 def make_grid() -> tuple:
     """Build triangle vertices, base light levels, animation flags, and phases."""
+    # A fixed seed makes the test grid repeatable between runs.
     rng = np.random.default_rng(2026)
     triangles = []
     levels = []
@@ -56,6 +57,7 @@ def make_grid() -> tuple:
         points: tuple[tuple[int, int], tuple[int, int], tuple[int, int]]
     ) -> None:
         """Append one triangle with its own RGB6 colour and light level."""
+        # Store XYZ and normalized RGB on each vertex; keep lighting per triangle.
         colour = rng.integers(0, 64, size=3).astype(np.float32) / 63.0
         for x, y in points:
             triangles.append((x, y, 0.0, *colour))
@@ -64,6 +66,7 @@ def make_grid() -> tuple:
     cell_width, cell_height = CELL_SIZE
     for row in range(GRID_SIZE[1]):
         for column in range(GRID_SIZE[0]):
+            # Convert this cell's grid coordinate into its four world-space corners.
             left = column * cell_width
             top = row * cell_height
             top_left = (left, top)
@@ -71,6 +74,7 @@ def make_grid() -> tuple:
             bottom_left = (left, top + cell_height)
             bottom_right = (left + cell_width, top + cell_height)
 
+            # Alternate diagonals so each orientation continues into diagonal neighbors.
             if (column + row) % 2 == 0:
                 add_triangle((top_left, top_right, bottom_left))
                 add_triangle((top_right, bottom_right, bottom_left))
@@ -78,6 +82,7 @@ def make_grid() -> tuple:
                 add_triangle((top_left, top_right, bottom_right))
                 add_triangle((top_left, bottom_right, bottom_left))
 
+    # Keep one base-light value and animation phase/flag aligned with each triangle.
     vertices = np.asarray(triangles, dtype=np.float32)
     base_levels = np.asarray(levels, dtype=np.float32)
     animated = rng.random(len(base_levels)) < 0.06
