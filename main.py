@@ -1,3 +1,5 @@
+"""Render a pannable, per-triangle-lit grid with Pygame and OpenGL."""
+
 import math
 import sys
 
@@ -44,12 +46,16 @@ void main() {
 """
 
 
-def make_grid():
+def make_grid() -> tuple:
+    """Build triangle vertices, base light levels, animation flags, and phases."""
     rng = np.random.default_rng(2026)
     triangles = []
     levels = []
 
-    def add_triangle(points):
+    def add_triangle(
+        points: tuple[tuple[int, int], tuple[int, int], tuple[int, int]]
+    ) -> None:
+        """Append one triangle with its own RGB6 colour and light level."""
         colour = rng.integers(0, 64, size=3).astype(np.float32) / 63.0
         for x, y in points:
             triangles.append((x, y, 0.0, *colour))
@@ -79,7 +85,8 @@ def make_grid():
     return vertices, base_levels, animated, phases
 
 
-def create_shader_program():
+def create_shader_program() -> int:
+    """Compile and link the vertex and fragment shaders."""
     program = glCreateProgram()
     vertex_shader = compileShader(VERTEX_SHADER, GL_VERTEX_SHADER)
     fragment_shader = compileShader(FRAGMENT_SHADER, GL_FRAGMENT_SHADER)
@@ -97,7 +104,8 @@ def create_shader_program():
     return program
 
 
-def main():
+def main() -> int:
+    """Create the OpenGL window and run the interactive grid renderer."""
     pygame.init()
     pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 16)
     pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 0)
@@ -150,7 +158,10 @@ def main():
     running = True
 
     while running:
+        # Limit long frame times so a pause does not cause a large camera jump.
         delta_time = min(clock.tick(120) / 1000.0, 0.05)
+
+        # Handle window events, including resize and requests to quit.
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -159,16 +170,19 @@ def main():
             elif event.type == pygame.VIDEORESIZE:
                 glViewport(0, 0, *event.size)
 
+        # Move the camera from the currently held arrow keys.
         keys = pygame.key.get_pressed()
         horizontal = float(keys[pygame.K_RIGHT]) - float(keys[pygame.K_LEFT])
         vertical = float(keys[pygame.K_DOWN]) - float(keys[pygame.K_UP])
         camera_x += horizontal * PAN_SPEED * delta_time
         camera_y += vertical * PAN_SPEED * delta_time
 
+        # Keep the viewport inside the grid, including after a window resize.
         viewport_width, viewport_height = pygame.display.get_window_size()
         camera_x = min(max(camera_x, 0.0), max(0.0, world_width - viewport_width))
         camera_y = min(max(camera_y, 0.0), max(0.0, world_height - viewport_height))
 
+        # Animate selected triangle lights and upload the updated 8-bit values.
         elapsed = pygame.time.get_ticks() / 1000.0
         levels = base_levels.copy()
         levels[animated] = 4.0 + 12.0 * (
@@ -179,6 +193,7 @@ def main():
         glBindBuffer(GL_ARRAY_BUFFER, lighting_buffer)
         glBufferSubData(GL_ARRAY_BUFFER, 0, vertex_lighting.nbytes, vertex_lighting)
 
+        # Clear the frame, apply the camera uniforms, draw the grid, and present.
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glUseProgram(program)
         glUniform2f(camera_uniform, camera_x, camera_y)
