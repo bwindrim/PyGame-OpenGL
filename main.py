@@ -71,7 +71,7 @@ def make_grid() -> tuple:
             bottom_left = (left, top + cell_height)
             bottom_right = (left + cell_width, top + cell_height)
 
-            if rng.integers(0, 2):
+            if (column + row) % 2 == 0:
                 add_triangle((top_left, top_right, bottom_left))
                 add_triangle((top_right, bottom_right, bottom_left))
             else:
