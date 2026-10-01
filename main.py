@@ -170,15 +170,15 @@ def main() -> int:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            elif event.type == pygame.KEYDOWN and (event.key == pygame.K_ESCAPE or event.key == pygame.K_n):
                 running = False
             elif event.type == pygame.VIDEORESIZE:
                 glViewport(0, 0, *event.size)
 
         # Move the camera from the currently held arrow keys.
         keys = pygame.key.get_pressed()
-        horizontal = float(keys[pygame.K_RIGHT]) - float(keys[pygame.K_LEFT])
-        vertical = float(keys[pygame.K_DOWN]) - float(keys[pygame.K_UP])
+        horizontal = float(keys[pygame.K_f]) - float(keys[pygame.K_e] + float(keys[pygame.K_LEFT]) - float(keys[pygame.K_RIGHT]))
+        vertical = float(keys[pygame.K_d]) - float(keys[pygame.K_c] + float(keys[pygame.K_UP]) - float(keys[pygame.K_DOWN]))
         camera_x += horizontal * PAN_SPEED * delta_time
         camera_y += vertical * PAN_SPEED * delta_time
 
